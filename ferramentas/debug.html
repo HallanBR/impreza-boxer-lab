@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Debug peças</title>
+<style>html,body{margin:0;height:100%;background:#0b0f16;color:#fff;font:11px monospace;overflow:hidden}
+.l{position:absolute;transform:translate(-50%,-50%);background:#000a;padding:0 3px;border-radius:2px;pointer-events:none;white-space:nowrap}</style>
+<div id="L"></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); document.body.append(r.domElement);
+const scene = new THREE.Scene(); scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 2)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(1, 2, 3); scene.add(dl);
+const cam = new THREE.PerspectiveCamera(35, 1, .01, 50);
+window.view = (x, y, z, tx = 0, ty = .35, tz = 0) => { cam.position.set(x, y, z); cam.lookAt(tx, ty, tz); };
+view(...(q.get('v') || '1.2,1,1.4').split(',').map(Number));
+const only = q.get('only') ? new Set(q.get('only').split(',')) : null, hide = q.get('hide') ? new Set(q.get('hide').split(',')) : new Set();
+const minT = +(q.get('min') || 400), labels = [];
+new GLTFLoader().load(q.get('f') || 'pieces.glb', g => {
+  g.scene.traverse(o => { if (!o.isMesh) return; const n = o.name, t = o.geometry.index.count/3;
+    const show = only ? only.has(n) : !hide.has(n); o.visible = show;
+    const h = (parseInt(n.slice(1)) * 0.137) % 1; o.material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(h, .6, .55), flatShading: true, side: THREE.DoubleSide });
+    if (show && t >= minT) { o.geometry.computeBoundingBox(); const c = o.geometry.boundingBox.getCenter(new THREE.Vector3()); const d = document.createElement('div'); d.className = 'l'; d.textContent = n; L.append(d); labels.push([c, d]); } });
+  scene.add(g.scene);
+});
+(function loop(){ if (r.domElement.width !== innerWidth) { r.setSize(innerWidth, innerHeight); cam.aspect = innerWidth/innerHeight; cam.updateProjectionMatrix(); }
+  r.render(scene, cam); for (const [c, d] of labels) { const v = c.clone().project(cam); d.style.left = (v.x*.5+.5)*innerWidth + 'px'; d.style.top = (-v.y*.5+.5)*innerHeight + 'px'; }
+  requestAnimationFrame(loop); })();
+</script>

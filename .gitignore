@@ -1,0 +1,10 @@
+# arquivos baixados de terceiros (originais): não são redistribuídos aqui
+*.zip
+subaru_engine.glb
+ferramentas/ref-correia.jpg
+
+# versões .glb intermediárias (o site usa os .json gerados a partir delas)
+modelos/*.glb
+
+# configuração local
+.claude/
