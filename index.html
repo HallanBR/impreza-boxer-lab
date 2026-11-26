@@ -57,14 +57,6 @@ dl.spec dt{color:var(--muted)}
 dl.spec dd{margin:0;font-family:var(--f-mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
 .note{font-size:12px;color:var(--muted);margin:0}
 
-.plist{display:flex;flex-direction:column;gap:12px}
-.pgroup{display:flex;flex-direction:column;gap:2px}
-.pgroup h4{margin:0 0 4px;font-family:var(--f-mono);font-weight:400;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.pbtn{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:3px;font-size:13.5px;cursor:pointer;border-left:2px solid transparent}
-.pbtn:hover{background:var(--panel-2)}
-.pbtn:focus-visible{outline:2px solid var(--holo)}
-.pbtn.on{background:color-mix(in srgb,var(--wr) 16%,var(--panel));border-left-color:var(--wr)}
-.pbtn span{font-family:var(--f-mono);font-size:10px;color:var(--muted);white-space:nowrap}
 
 .viewer{position:relative;min-height:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#04070c}
 .viewer canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -161,9 +153,9 @@ input[type=range]{width:100%;accent-color:var(--wr);margin:0}
         </dl>
         <p class="note">Potência e torque são valores de referência; variam conforme mercado e ano-modelo.</p>
       </section>
-      <section class="sec">
-        <div class="eyebrow" id="pcount">Peças</div>
-        <div class="plist" id="plist"></div>
+      <section class="sec info" id="info" aria-live="polite">
+        <div class="eyebrow">Peça selecionada</div>
+        <p class="empty">Clique numa peça no visor para ver o que ela faz.</p>
       </section>
       <section class="sec">
         <div class="eyebrow">Origem dos modelos 3D</div>
@@ -212,10 +204,6 @@ input[type=range]{width:100%;accent-color:var(--wr);margin:0}
         <label class="switch">Mostrar peças do carro<input type="checkbox" id="car"><i></i></label>
         <label class="switch">Mostrar capas da correia<input type="checkbox" id="covers"><i></i></label>
         <label class="switch">Modo econômico (menos GPU)<input type="checkbox" id="eco"><i></i></label>
-      </section>
-      <section class="sec info" id="info" aria-live="polite">
-        <div class="eyebrow">Peça selecionada</div>
-        <p class="empty">Clique numa peça no visor ou na lista para ver o que ela faz.</p>
       </section>
     </aside>
   </main>
@@ -1627,7 +1615,6 @@ function finishSetup() {
     });
     if (p.gearbox || p.covers || p.car) p.pcs.forEach(pc => pc.mesh.visible = false);
   }
-  buildList();
   $('loading').remove();
   syncUI();
   const v0 = currentView(); flyTo(v0.pos, v0.tgt, 1.8);
@@ -1635,16 +1622,7 @@ function finishSetup() {
   requestAnimationFrame(frame);
 }
 
-// ---------- lista lateral e rótulos
-function buildList() {
-  const n = pieces.length, nf = pieces.filter(pc => pc.fastener).length;
-  $('pcount').textContent = `${PARTS.length} conjuntos · ${n} peças (${nf} fixadores)`;
-  const plist = $('plist');
-  CATS.forEach((cat, ci) => { const g = document.createElement('div'); g.className = 'pgroup'; g.innerHTML = `<h4>${cat}</h4>`;
-    PARTS.filter(p => p.cat === ci).forEach(p => { const b = document.createElement('button'); b.className = 'pbtn';
-      const k = p.pcs.length; b.innerHTML = `${p.name}<span>${k} ${k > 1 ? 'peças' : 'peça'}</span>`; b.onclick = () => select(p, true); p.btn = b; g.append(b); });
-    plist.append(g); });
-}
+// ---------- rótulo da peça selecionada
 const selLabel = document.createElement('div'); selLabel.className = 'lbl'; selLabel.hidden = true; $('labels').append(selLabel);
 
 // ---------- estado
@@ -1691,10 +1669,9 @@ function setEco(on) {
 // ---------- painel da peça + visor de detalhe (peças do kit imprimível)
 const info = $('info');
 let detail = null;
-function select(p, fromList = false) {
+function select(p) {
   selected = p;
-  PARTS.forEach(q => q.btn?.classList.toggle('on', q === p));
-  if (!p) { info.innerHTML = `<div class="eyebrow">Peça selecionada</div><p class="empty">Clique numa peça no visor ou na lista para ver o que ela faz.</p>`; detail?.hide(); return; }
+  if (!p) { info.innerHTML = `<div class="eyebrow">Peça selecionada</div><p class="empty">Clique numa peça no visor para ver o que ela faz.</p>`; detail?.hide(); return; }
   if (p.gearbox && !state.gearbox) { $('gearbox').checked = true; setGearbox(true); }
   if (p.covers && !state.covers) { $('covers').checked = true; setCovers(true); }
   if (p.car && !state.car) { $('car').checked = true; setCar(true); }
@@ -1707,7 +1684,6 @@ function select(p, fromList = false) {
   $('bFocus').onclick = () => focusPart(p);
   $('bClear').onclick = () => select(null);
   if (p.stl) showDetail(p); else detail?.hide();
-  if (fromList) { p.btn.scrollIntoView({ block: 'nearest' }); focusPart(p); }
 }
 function showDetail(p) {
   if (!detail) {
