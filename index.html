@@ -209,6 +209,7 @@ input[type=range]{width:100%;accent-color:var(--wr);margin:0}
         <div class="row"><label for="speed">Rotação</label><input type="range" id="speed" min="5" max="300" value="40"><output id="oSpeed">24 rpm</output></div>
         <label class="switch">Raio‑X (bloco transparente)<input type="checkbox" id="xray"><i></i></label>
         <label class="switch">Mostrar câmbio<input type="checkbox" id="gearbox"><i></i></label>
+        <label class="switch">Mostrar peças do carro<input type="checkbox" id="car"><i></i></label>
         <label class="switch">Mostrar capas da correia<input type="checkbox" id="covers"><i></i></label>
         <label class="switch">Modo econômico (menos GPU)<input type="checkbox" id="eco"><i></i></label>
       </section>
@@ -337,7 +338,7 @@ const multiV = (ri, ro, w, n) => { const p = [[ri, -w/2], [ro, -w/2]], step = w/
 
 // ---------- catálogo de peças
 // pieces: nomes das peças do GLB de montagem; build: peça modelada à parte; stl: peças detalhadas do kit imprimível
-const CATS = ['Bloco e lubrificação','Conjunto móvel','Cabeçotes e válvulas','Distribuição e arrefecimento','Admissão','Escape','Elétrica e ignição','Transmissão','Acessórios'];
+const CATS = ['Bloco e lubrificação','Conjunto móvel','Cabeçotes e válvulas','Distribuição e arrefecimento','Admissão','Escape','Elétrica e ignição','Transmissão','Acessórios','Carro (fora do motor)'];
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => 'G' + (a + i));
 const CYLS = [ { n: 1, s: 1, piston: 'G31', rod: 'G54', cap: 'G63', phi: Math.PI, z: -.123 },
                { n: 2, s: -1, piston: 'G32', rod: 'G52', cap: 'G59', phi: 0, z: -.043 },
@@ -369,6 +370,10 @@ const PARTS = [
     desc: 'Chapa de aço com um olhal, aparafusada no alto do bloco, atrás (engine rear hanger, no manual). É onde se prende a corrente do guincho para tirar ou colocar o motor.', spec: 'Aço estampado · 2 parafusos' },
   { id: 'massa', name: 'Cabo de massa do motor', cat: 6, build: 'groundStrap', mat: 'steel', ex: [-.3, .35, .4],
     desc: 'Cordoalha de cobre que liga o motor à carroceria. Como o motor fica sobre coxins de borracha, é por ela que volta a corrente do motor de arranque, do alternador e dos sensores.', spec: 'Cordoalha trançada · terminais de olhal' },
+  { id: 'defletor', name: 'Defletor de óleo (baffle plate)', cat: 0, build: 'bafflePlate', mat: 'steel', ex: [0, -.42, 0],
+    desc: 'Chapa furada entre o bloco e o cárter. Nas curvas e frenagens, segura o óleo perto do pescador e impede que ele seja batido pelo virabrequim.', spec: 'Chapa de aço estampada' },
+  { id: 'separador', name: 'Tampa do separador de óleo', cat: 0, build: 'oilSeparator', mat: 'cast', ex: [.1, .5, 0],
+    desc: 'Tampa aparafusada no alto do bloco, sobre a câmara onde os gases que escapam pelos anéis (blow-by) deixam o óleo. A válvula PCV sai dela e manda esses gases para o coletor de admissão, para serem queimados.', spec: 'Alumínio · 6 parafusos' },
   { id: 'carter', name: 'Cárter de óleo', cat: 0, pieces: ['G11'], mat: 'cast', ex: [0,-.6,0], xray: true, stl: ['oil_pan_-_no_electronics_scaled'],
     desc: 'Reservatório de óleo preso por baixo do bloco. A bomba puxa o óleo daqui pelo pescador.', spec: 'Capacidade ≈ 4 L com filtro' },
   { id: 'bombaOleo', name: 'Bomba de óleo e tampa frontal', cat: 0, pieces: ['G8'], mat: 'cast', ex: [0,-.05,-.62], stl: ['Oil_Pump_scaled'],
@@ -411,6 +416,8 @@ const PARTS = [
                 : 'Abre as válvulas de escape. Gira na metade da rotação do virabrequim, sincronizado pela correia dentada.',
     spec: c.adm ? 'DOHC · variador AVCS' : 'DOHC · fase fixa' })),
 
+  { id: 'guiaCorreia', name: 'Guia da correia dentada', cat: 3, build: 'beltGuide', mat: 'steel', ex: [0, .12, -.5],
+    desc: 'Chapa curva sobre a engrenagem do virabrequim, a poucos milímetros do dorso da correia (só no câmbio manual, segundo o manual). Se a correia folgar numa redução brusca, ela impede que pule dentes.', spec: 'Chapa de aço · 2 parafusos' },
   { id: 'correia', name: 'Correia dentada', cat: 3, build: 'belt', mat: 'rubber', ex: [0,0,-.42],
     desc: 'Sincroniza o virabrequim com os quatro comandos e move a bomba d’água. O EJ20 é um motor de interferência: se a correia romper, pistões e válvulas podem se tocar.', spec: 'Borracha com lonas · troca conforme o manual' },
   { id: 'tensor', name: 'Tensor da correia', cat: 3, pieces: ['G56','G81','G69'], build: 'beltAdjuster', mat: 'cast', ex: [-.05,.15,-.55], kin: 'idler', stl: ['Tensioner_scaled','Tensioner_plate_scaled','Tensioner_pulley_scaled'],
@@ -440,7 +447,7 @@ const PARTS = [
     desc: 'Fica atrás do volante, no alto do lado direito, preso por dois parafusos na carcaça da embreagem. Na partida, o solenoide (o cilindro de cima) empurra o pinhão contra a coroa do volante e liga o motor elétrico, que gira o virabrequim até o boxer pegar. O cabo grosso vem direto da bateria.', spec: '12 V · solenoide sobre o motor' },
 
   ...[1, -1].map(s => ({ id: 'velas' + (s > 0 ? 'D' : 'E'), name: `Velas de ignição — ${side(s)}`, cat: 6, build: 'sparkPlugs', s, mat: 'white', ex: [s*1.24, 0, 0],
-    desc: 'Uma vela por cilindro, rosqueada no centro da câmara de combustão, entre as quatro válvulas. A bobina encaixa direto na ponta dela e a faísca entre os eletrodos inflama a mistura.', spec: 'Rosca M14 · eletrodo de irídio ou platina' })),
+    desc: 'Uma vela por cilindro, rosqueada no centro da câmara de combustão, entre as quatro válvulas. Fica no fundo de um poço do cabeçote; a extensão de borracha da bobina desce por ele e encaixa na ponta da vela. A faísca entre os eletrodos inflama a mistura.', spec: 'Rosca M14 · eletrodo de irídio ou platina' })),
   ...[1, -1].map(s => ({ id: 'bicos' + (s > 0 ? 'D' : 'E'), name: `Bicos injetores e flauta — ${side(s)}`, cat: 4, build: 'injectors', s, mat: 'green', ex: [s*.72, .45, 0],
     desc: 'Um bico por cilindro, apontado para a porta de admissão do cabeçote. A flauta leva a gasolina pressurizada; a central abre cada bico no momento certo (injeção multiponto sequencial).', spec: 'Injeção multiponto sequencial' })),
   { id: 'borboleta', name: 'Corpo de borboleta', cat: 4, build: 'throttle', mat: 'alu', ex: [0, .55, -.5],
@@ -513,6 +520,16 @@ const PARTS = [
     desc: 'Leva o ar do filtro até o corpo de borboleta. O sensor de fluxo de ar (MAF) mede quanto ar entra, e a central calcula a gasolina a partir disso. A caixa do filtro fica no carro.', spec: 'Fio quente (MAF) · fole de borracha' },
   { id: 'retentor', name: 'Tampa traseira e retentor do virabrequim', cat: 1, build: 'rearSeal', mat: 'cast', ex: [0, -.1, .3],
     desc: 'Tampa aparafusada atrás do bloco com o retentor de borracha que veda o óleo na saída do virabrequim, antes do volante. O retentor dianteiro fica na bomba de óleo.', spec: 'Retentor de lábio' },
+  { id: 'suportesEscape', name: 'Suportes do escape', cat: 5, build: 'exhaustHangers', mat: 'steel', ex: [0, -.3, .3],
+    desc: 'Depois do catalisador, o tubo fica pendurado na carroceria por hastes soldadas e coxins de borracha. A borracha deixa o escape balançar com o motor sem passar a vibração para o carro.', spec: '2 hastes · coxins de borracha' },
+  { id: 'radiador', name: 'Radiador e ventoinhas', cat: 9, car: true, build: 'radiator', mat: 'alu', ex: [0, 0, -.55],
+    desc: 'Na frente do carro. O líquido quente entra pela mangueira superior, passa pela colmeia e volta frio pela inferior. As duas ventoinhas elétricas atrás puxam ar quando o carro está parado; à frente fica o condensador do ar-condicionado.', spec: 'Alumínio · 2 ventoinhas elétricas' },
+  { id: 'caixaAr', name: 'Caixa do filtro de ar', cat: 9, car: true, build: 'airBox', mat: 'plastic', ex: [-.3, .2, -.5],
+    desc: 'Na frente, à esquerda. O ar entra pelo bocal, passa pelo filtro de papel dentro da caixa e segue pelo sensor de fluxo e pelo duto até a borboleta.', spec: 'Filtro de papel · bocal à frente' },
+  { id: 'travessa', name: 'Travessa dianteira', cat: 9, car: true, build: 'crossmember', mat: 'forged', ex: [0, -.4, 0],
+    desc: 'Viga de aço presa à carroceria por baixo do motor. Os coxins do motor apoiam nela; as pontas seguem para os pontos de fixação na carroceria.', spec: 'Aço estampado' },
+  { id: 'coximCambio', name: 'Coxim do câmbio', cat: 9, car: true, build: 'gearboxMount', mat: 'forged', ex: [0, -.35, .4],
+    desc: 'Atrás, sob o câmbio: suporte, borracha e uma travessa pequena presa à carroceria. Junto com os coxins do motor e o coxim superior, segura o conjunto motor-câmbio.', spec: 'Borracha · travessa traseira' },
   { id: 'cambio', name: 'Câmbio', cat: 7, pieces: ['G2'], mat: 'gearbox', ex: [0,0,1.25], gearbox: true, xray: true,
     desc: 'Transmissão manual acoplada atrás do motor. Não faz parte do motor em si; ligue “Mostrar câmbio” para ver o conjunto completo.', spec: 'Caixa manual · carcaça de alumínio' },
 ];
@@ -708,13 +725,15 @@ const BUILD = {
     [-.022, .022].forEach(dx => add(rbox(.006, .04, .03, .002), 'forged', [e2[0] + dx, e2[1], e2[2] + .004]));
   },
   sparkPlugs(add, p) {
-    // da câmara (x≈0,30) até a bobina; rosca, sextavado, isolador de cerâmica e terminal
+    // vela de ≈ 85 mm a partir da câmara (x≈0,30): eletrodo, rosca M14, arruela, sextavado, isolador de cerâmica e
+    // terminal; a extensão de borracha da bobina desce pelo poço do cabeçote até encaixar no terminal
     const s = p.s, along = g => g.rotateZ(-s*Math.PI/2);
     plugZ(s).forEach(z => { const at = t => [s*(.296 + t), .34, z];
-      add(along(lathe([[0,0],[.002,0],[.002,.004],[.006,.006],[.006,.03]], 20)), 'steel', at(0));
-      add(along(new THREE.CylinderGeometry(.0095, .0095, .018, 6)), 'zinc', at(.039));
-      add(along(lathe([[.009,0],[.0075,.02],[.0065,.11],[.005,.13]], 24)), 'white', at(.048));
-      add(along(lathe([[.003,0],[.003,.012],[.004,.014],[.004,.02],[0,.02]], 12)), 'steel', at(.178)); });
+      add(along(lathe([[0,0],[.0015,0],[.0015,.003],[.0045,.004],[.0045,.006],[.007,.007],[.007,.025]], 20)), 'steel', at(0));
+      add(along(cylY(.0095, .002, 20)), 'zinc', at(.026));
+      add(along(new THREE.CylinderGeometry(.0105, .0105, .016, 6)), 'zinc', at(.035));
+      add(along(lathe([[.0085,0],[.0072,.012],[.0068,.05],[.0055,.058]], 24)), 'white', at(.043));
+      add(along(lathe([[.003,0],[.003,.008],[.004,.009],[.004,.013],[0,.013]], 12)), 'steel', at(.1)); });
   },
   injectors(add, p) {
     // cada bico entra na base de admissão logo acima da porta do cabeçote; a flauta corre ao longo do cabeçote,
@@ -901,6 +920,78 @@ const BUILD = {
     add(cylY(.0025, .014, 8), 'steel', [xt, CY + .019, zc + .022]);
     // mangueira do fluido: sai de trás do cilindro e segue para o cilindro mestre (no painel corta-fogo)
     add(tube([[xt, CY + .008, zc + .035], [xt - .01, CY + .03, zc + .07], [xt - .04, CY + .12, zc + .18], [xt - .07, CY + .24, zc + .36]], .0045, false, 40, 8), 'rubber');
+  },
+  // defletor: chapa furada logo abaixo do bloco, dentro do cárter, com recorte para o pescador
+  bafflePlate(add) {
+    const pan = pieceByName.G11.mesh.geometry.boundingBox, y = pan.max.y - .018, W = pan.max.x - pan.min.x - .1, L = pan.max.z - pan.min.z - .11;
+    const sh = rrect(W, L, .02, (pan.min.x + pan.max.x)/2, (pan.min.z + pan.max.z)/2); hole(sh, 0, -.06, .026);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) hole(sh, -W/3 + i*W/3, pan.min.z + .07 + j*(L - .08)/3 + (i === 1 && j === 1 ? .03 : 0), .011);
+    add(ext(sh, .002, .0006, 12).rotateX(Math.PI/2), 'steel', [0, y, 0]);
+  },
+  oilSeparator(add) {
+    const x = PCV.x, z = PCV.z, y = rayHit(['G0'], [x, 1.2, z], [0, -1, 0])?.y ?? .46;
+    add(rbox(.08, .006, .064, .003), 'cast', [x, y + .003, z]);
+    for (let i = 0; i < 6; i++) { const dx = (i % 3 - 1)*.032, dz = i < 3 ? -.026 : .026;
+      add(new THREE.CylinderGeometry(.005, .005, .005, 6), 'zinc', [x + dx, y + .0085, z + dz]); }
+  },
+  // guia da correia: arco sobre a engrenagem do virabrequim, por fora do dorso da correia, preso à tampa da bomba de óleo
+  beltGuide(add) {
+    const c = pieceByName.G60.center, r0 = .041 + .007 + .004, a0 = .9, a1 = Math.PI - .9;
+    add(toZ(new THREE.LatheGeometry([[r0, -.016], [r0 + .004, -.016], [r0 + .004, .016], [r0, .016], [r0, -.016]].map(([r, y]) => new THREE.Vector2(r, y)), 32, Math.PI/2 - a1, a1 - a0)).rotateZ(Math.PI), 'steel', [c.x, c.y, -.252]);
+    [a0, a1].forEach(a => { const x = c.x + Math.cos(a)*(r0 + .002), y = c.y + Math.sin(a)*(r0 + .002), face = rayHit(['G8', 'G0'], [x, y, -1.2], [0, 0, 1])?.z ?? -.209;
+      const len = face - (-.236); if (len > .002) add(rbox(.012, .008, len, .002), 'steel', [x, y, -.236 + len/2]);
+      add(new THREE.CylinderGeometry(.005, .005, .005, 6).rotateX(Math.PI/2), 'zinc', [x, y, -.27]); });
+  },
+  // hastes soldadas no tubo depois do catalisador, com coxim de borracha (olhal) pendurado na carroceria
+  exhaustHangers(add) {
+    [.55, .82].forEach(z => {
+      add(new THREE.TorusGeometry(.0215, .003, 6, 24), 'steel', [0, -.05, z]);
+      add(tube([[.016, -.035, z], [.03, -.01, z], [.03, .03, z]], .003, false, 16, 6), 'steel');
+      add(new THREE.TorusGeometry(.014, .006, 10, 24).rotateY(Math.PI/2), 'rubber', [.03, .046, z]);
+      add(tube([[.03, .062, z], [.03, .09, z], [.06, .1, z]], .003, false, 16, 6), 'steel'); });
+  },
+  // radiador (colmeia, caixas laterais, tampa), condensador à frente e defletor com duas ventoinhas atrás;
+  // as mangueiras chegam na caixa esquerda
+  radiator(add) {
+    const z = -.64, W = .84, H = .5, y0 = .07, yc = y0 + H/2, fins = [];
+    add(rbox(W, H, .03, .002), 'alu', [0, yc, z]);
+    for (let i = 0; i < 24; i++) fins.push(box(W - .01, .003, .031).translate(0, y0 + .01 + i*(H - .02)/23, z).toNonIndexed());
+    add(mergeGeometries(fins.map(g => { g.deleteAttribute('uv'); return g; })), 'cast');
+    [-1, 1].forEach(k => add(rbox(.05, H + .02, .045, .008), 'plastic', [k*(W/2 + .025), yc, z]));
+    add(cylZ(.016, .04, 20), 'plastic', [-.445, .53, -.62]); add(cylZ(.016, .04, 20), 'plastic', [-.445, .095, -.62]);
+    add(cylY(.016, .02, 24), 'plastic', [-.445, y0 + H + .02, z]); add(cylY(.02, .012, 24), 'dark', [-.445, y0 + H + .036, z]);
+    add(rbox(W + .06, H - .02, .016, .002), 'cast', [0, yc, z - .035]);
+    // defletor (shroud) com duas ventoinhas
+    add(rbox(W - .02, H - .02, .006, .004), 'plastic', [0, yc, z + .04]);
+    [-.19, .19].forEach(x => { add(toZ(lathe([[.16,0],[.165,0],[.165,.04],[.16,.04]], 48)), 'plastic', [x, yc, z + .02]);
+      add(cylZ(.045, .05, 32), 'dark', [x, yc, z + .075]);
+      const bl = []; for (let i = 0; i < 7; i++) { const a = i/7*Math.PI*2; bl.push(box(.11, .03, .004).rotateX(.35).translate(.1, 0, 0).rotateZ(a).toNonIndexed()); }
+      add(mergeGeometries(bl.map(g => { g.deleteAttribute('uv'); return g; })), 'plastic', [x, yc, z + .045]); });
+  },
+  // caixa do filtro de ar: presa ao sensor de fluxo (fim do duto de ar), com bocal de entrada para a frente
+  airBox(add) {
+    const y = INTAKE.y + .04, z0 = INTAKE.z0 - .022 - .075, u = [-.753, 0, -.659];   // direção do último trecho do duto de ar
+    const c = [-.24 + u[0]*.158, y, z0 - .37 + u[2]*.158], rot = g => g.rotateY(Math.atan2(u[0], u[2]));
+    add(rot(rbox(.22, .13, .2, .02)), 'plastic', c);
+    add(rot(rbox(.225, .01, .205, .004)), 'dark', [c[0], c[1] + .012, c[2]]);
+    add(cylZ(.035, .16, 28), 'plastic', [c[0] + .05, c[1] - .03, c[2] - .17]);
+  },
+  // travessa: viga entre a traseira do cárter e o câmbio, com braços até o apoio de cada coxim do motor
+  crossmember(add) {
+    add(rbox(1.2, .035, .03, .006), 'forged', [0, .05, .212]);
+    [1, -1].forEach(s => {
+      const m = [s*.28, .035, .1];
+      add(tube([[s*.2, .05, .212], [s*.25, .045, .16], m], .016, false, 24, 10), 'forged');
+      add(rbox(.07, .008, .06, .003), 'forged', [m[0], m[1] + .004, m[2]]);
+      add(rbox(.04, .06, .06, .006), 'forged', [s*.6, .06, .212]); });
+  },
+  // coxim do câmbio: suporte sob a traseira do câmbio, borracha e travessa pequena
+  gearboxMount(add) {
+    const z = .8, yb = pieceByName.G2.mesh.geometry.boundingBox.min.y;
+    add(rbox(.12, .008, .06, .003), 'forged', [0, yb - .004, z]);
+    add(lathe([[0,0],[.03,0],[.034,.01],[.03,.025],[0,.025]], 28), 'rubber', [0, yb - .033, z]);
+    add(rbox(.5, .02, .04, .005), 'forged', [0, yb - .046, z]);
+    [-.04, .04].forEach(dx => add(new THREE.CylinderGeometry(.007, .007, .006, 6), 'zinc', [dx, yb - .001, z]));
   },
   // parafusos do cabeçote: 6 por lado, em volta dos dois cilindros; a cabeça apoia numa arruela dentro do cabeçote
   headBolts(add, p) {
@@ -1126,7 +1217,10 @@ Object.assign(BUILD, {
       add(rbox(.006, .078, .078, .004), 'rubber', [s*(xs + .003), .345, zc]);
       const xb = s*(xs + .006 + .0175);
       add(rbox(.035, .045, .06, .006), 'plastic', [xb, .345, zc]);
-      add(cylY(.009, .04, 16).rotateZ(Math.PI/2), 'rubber', [xb - s*.035, .345, zc]);
+      // extensão de borracha (bota) do fundo da bobina até o terminal da vela, dentro do poço
+      const xTop = s*(.296 + .113), len = Math.abs(xb) - .0175 - Math.abs(xTop);
+      add(cylY(.009, len, 16).rotateZ(Math.PI/2), 'rubber', [s*(Math.abs(xTop) + len/2), .34, zc]);
+      add(cylY(.0105, .016, 16).rotateZ(Math.PI/2), 'rubber', [s*(Math.abs(xTop) + .008), .34, zc]);
       add(rbox(.02, .022, .025, .003), 'plastic', [xb + s*.005, .38, zc - .005]);
     });
   },
@@ -1177,7 +1271,7 @@ Object.assign(BUILD, {
     const ring = (p, r) => add(new THREE.TorusGeometry(r + .002, .0025, 6, 24), 'zinc', p);
     // inferior: da válvula termostática para o radiador
     const t0 = [THERMO.x, THERMO.y - .03, THERMO.z - .072];
-    add(tube([t0, [t0[0] - .01, t0[1] - .005, -.34], [t0[0] - .05, t0[1] - .02, -.45], [t0[0] - .1, t0[1] - .03, -.56]], .015, false, 40, 16), 'rubber'); ring([t0[0], t0[1], t0[2] - .002], .015);
+    add(tube([t0, [t0[0] - .01, t0[1] - .005, -.34], [t0[0] - .1, t0[1] - .005, -.45], [-.43, .095, -.565], [-.445, .095, -.598]], .015, false, 40, 16), 'rubber'); ring([t0[0], t0[1], t0[2] - .002], .015);
     // superior: da saída de água na frente do bloco para o radiador (com o bocal de alumínio)
     // bocal na frente da base de admissão esquerda (saída de água do motor), por cima da capa da correia, rumo ao radiador
     const up = UPPER, zf = rayHit(["G10", "G4"], [up.x, up.y, -1.2], [0, 0, 1])?.z ?? -.09;
@@ -1199,8 +1293,8 @@ Object.assign(BUILD, {
     add(new THREE.CircleGeometry(.04, 32).rotateX(Math.PI/2), 'dark', [0, .0235, 0]);
   },
   pcv(add) {
-    // rosqueada no respiro do cárter, no topo do bloco embaixo do coletor; a mangueira sobe até o bico lateral do plenum
-    const x = PCV.x, z = PCV.z, y = rayHit(["G0"], [x, 1.2, z], [0, -1, 0])?.y ?? .46;
+    // rosqueada na tampa do separador de óleo, no topo do bloco embaixo do coletor; a mangueira sobe até o bico lateral do plenum
+    const x = PCV.x, z = PCV.z, y = (rayHit(["G0"], [x, 1.2, z], [0, -1, 0])?.y ?? .46) + .006;
     add(cylY(.014, .012, 24), 'cast', [x, y + .006, z]);
     add(new THREE.CylinderGeometry(.011, .011, .007, 6), 'zinc', [x, y + .015, z]);
     add(lathe([[.006,0],[.009,.004],[.009,.026],[.006,.03],[.005,.045]], 20), 'plastic', [x, y + .018, z]);
@@ -1531,7 +1625,7 @@ function finishSetup() {
       if (pc.fastener) { const n = d.lengthSq() > 1e-8 ? d.clone().normalize() : new THREE.Vector3(0, 1, 0); pc.l2.copy(n.multiplyScalar(.14)).add(d.multiplyScalar(.9)); }
       else if (main.length > 1) pc.l2.copy(d.multiplyScalar(.9));
     });
-    if (p.gearbox || p.covers) p.pcs.forEach(pc => pc.mesh.visible = false);
+    if (p.gearbox || p.covers || p.car) p.pcs.forEach(pc => pc.mesh.visible = false);
   }
   buildList();
   $('loading').remove();
@@ -1581,6 +1675,7 @@ function setXray(on) {
   refreshShadows();
 }
 function setGearbox(on) { state.gearbox = on; partById.cambio.pcs.forEach(pc => pc.mesh.visible = on); if (!on && selected === partById.cambio) select(null); refreshShadows(); }
+function setCar(on) { state.car = on; PARTS.filter(p => p.car).forEach(p => p.pcs.forEach(pc => pc.mesh.visible = on)); if (!on && selected?.car) select(null); refreshShadows(); }
 function setCovers(on) { state.covers = on; partById.capas.pcs.forEach(pc => pc.mesh.visible = on); if (!on && selected === partById.capas) select(null); refreshShadows(); }
 function refreshShadows() { renderer.shadowMap.needsUpdate = true; invalidate(); }
 // modo econômico: metade dos pixels em telas densas, sem sombras, 30 quadros/s e peça do painel parada
@@ -1602,6 +1697,7 @@ function select(p, fromList = false) {
   if (!p) { info.innerHTML = `<div class="eyebrow">Peça selecionada</div><p class="empty">Clique numa peça no visor ou na lista para ver o que ela faz.</p>`; detail?.hide(); return; }
   if (p.gearbox && !state.gearbox) { $('gearbox').checked = true; setGearbox(true); }
   if (p.covers && !state.covers) { $('covers').checked = true; setCovers(true); }
+  if (p.car && !state.car) { $('car').checked = true; setCar(true); }
   const nf = p.pcs.filter(pc => pc.fastener).length;
   selLabel.textContent = p.name;
   info.innerHTML = `<div class="eyebrow">${CATS[p.cat]}</div><h3>${p.name}</h3><p>${p.desc}</p><div class="specline">${p.spec}</div>
@@ -1687,6 +1783,7 @@ $('run').onchange = e => { state.running = e.target.checked; };
 $('speed').oninput = e => { state.speed = e.target.value/100; $('oSpeed').textContent = Math.round(state.speed*60) + ' rpm'; };
 $('xray').onchange = e => setXray(e.target.checked);
 $('gearbox').onchange = e => setGearbox(e.target.checked);
+$('car').onchange = e => setCar(e.target.checked);
 $('covers').onchange = e => setCovers(e.target.checked);
 $('eco').onchange = e => setEco(e.target.checked);
 // qualquer interação com a página pede um novo quadro (o loop fica parado quando nada muda)

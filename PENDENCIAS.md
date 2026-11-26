@@ -32,7 +32,7 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 | 2.4 | ✅ | Bomba da direção (corpo) | agora 85 mm | 80–100 mm |
 | 2.5 | ✅ | Corpo de borboleta (furo) | agora 62 mm (duto de ar acompanhou) | 60–65 mm |
 | 2.6 | ✅ | Polia do virabrequim | agora 145 mm (canal da frente 127 mm) | 140–150 mm |
-| 2.7 | C | Velas | 149 mm de ponta a ponta | 80–90 mm (o cabeçote do modelo é mais grosso que o real; a vela foi esticada até a bobina) |
+| 2.7 | ✅ | Velas | agora 85 mm; a bota de borracha da bobina desce pelo poço até a vela | 80–90 mm |
 | — | ok | Filtro de óleo | 65 mm | 65–68 mm |
 
 ## 3. Desenho diferente do real
@@ -64,13 +64,13 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 | 4.5 | ✅ | Gancho de içamento | O "engine rear hanger": base aparafusada no alto do bloco, atrás, com olhal. |
 | 4.6 | ✅ | Cabo de massa | Cordoalha com olhal no alto do bloco, atrás à esquerda, seguindo para a carroceria. |
 | 4.7 | ✅ | Acionamento da embreagem | Hidráulico, conforme o manual (CL-00547/00569): garfo com pivô e mola, capa de pó, cilindro auxiliar com haste, sangrador e mangueira; rolamento axial. |
-| 4.8 | C | Defletor de óleo do cárter | Confirmado no manual (baffle plate, entre o bloco e o cárter). |
-| 4.9 | C | Suportes do escape (coxins/ganchos) | O catalisador fica preso só pelo próprio tubo. |
-| 4.10 | C | Fora do motor (opcional): radiador e ventoinha, caixa do filtro de ar, travessa dianteira, coxim do câmbio | Hoje as mangueiras, o duto de ar e os coxins terminam abertos porque essas peças são do carro. |
+| 4.8 | ✅ | Defletor de óleo do cárter | Chapa furada entre o bloco e o cárter, com recorte para o pescador. |
+| 4.9 | ✅ | Suportes do escape | Duas hastes soldadas no tubo depois do catalisador, com coxim de borracha. |
+| 4.10 | ✅ | Peças do carro | Radiador com condensador e 2 ventoinhas (mangueiras ligadas), caixa do filtro de ar, travessa dianteira e coxim do câmbio. Ficam ocultas; aparecem na chave "Mostrar peças do carro". |
 
 | 4.11 | ✅ | Capas internas da correia (No. 2) | Chapas atrás das engrenagens dos comandos, com furos dos cubos e parafusos na borda. |
-| 4.12 | C | Guia da correia dentada (só no câmbio manual) | Peça pequena junto à engrenagem do virabrequim. |
-| 4.13 | C | Tampa do separador de óleo, tampas e bujões de serviço do bloco | Listados no manual (ME-03561). |
+| 4.12 | ✅ | Guia da correia dentada | Arco de chapa sobre a engrenagem do virabrequim, preso à tampa da bomba de óleo. |
+| 4.13 | C | Tampas do bloco | Tampa do separador de óleo feita (a PCV sai dela). Faltam os bujões e a tampa de serviço: no modelo não achei onde ficam os furos, e o manual só os lista, sem dizer a posição. |
 
 ## O que o manual de fábrica confirmou (Docs, 26/11/2026)
 

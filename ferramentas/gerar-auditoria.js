@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path');
 const raiz = path.join(__dirname, '..');
 let t = fs.readFileSync(path.join(raiz, 'impreza-boxer-lab.html'), 'utf8');
 const codigo = `
-const __pts = (p, step = .005) => { const out = []; p.pcs.forEach(pc => { if (!pc.mesh.visible && !p.gearbox && !p.covers) return; const P = pc.mesh.geometry.attributes.position;
+const __pts = (p, step = .005) => { const out = []; p.pcs.forEach(pc => { if (!pc.mesh.visible && !p.gearbox && !p.covers && !p.car) return; const P = pc.mesh.geometry.attributes.position;
   for (let i = 0; i < P.count; i += 3) { const a = [P.getX(i), P.getY(i), P.getZ(i)], b = [P.getX(i+1), P.getY(i+1), P.getZ(i+1)], c = [P.getX(i+2), P.getY(i+2), P.getZ(i+2)];
     const e = Math.max(Math.hypot(b[0]-a[0], b[1]-a[1], b[2]-a[2]), Math.hypot(c[0]-a[0], c[1]-a[1], c[2]-a[2])), n = Math.min(40, Math.ceil(e/step));
     for (let u = 0; u <= n; u++) for (let v = 0; v <= n - u; v++) { const w = 1 - (u + v)/n; out.push([a[0]*w + b[0]*u/n + c[0]*v/n, a[1]*w + b[1]*u/n + c[1]*v/n, a[2]*w + b[2]*u/n + c[2]*v/n]); } } }); return out; };
