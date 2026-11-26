@@ -1,6 +1,6 @@
 # Pendências do motor EJ20 — análise de 26/11/2026
 
-Rodada só de análise. Nada foi alterado no site.
+Análise feita em 26/11/2026; os itens marcados com ✅ já foram corrigidos no site.
 Como foi feito: (1) verificação automática de encostos entre os 78 conjuntos (a superfície de cada peça é amostrada a cada ~5 mm e comparada com as outras); (2) comparação de tamanhos com o EJ20 real, usando o pistão (Ø 92 mm) como régua; (3) revisão peça por peça contra o EJ20 / Impreza GH real.
 
 Prioridade: **A** = visível e errado · **B** = diferente do real, mas discreto · **C** = detalhe / a confirmar.
@@ -28,10 +28,10 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 |---|---|---|---|---|
 | 2.1 | ✅ | Alternador (diâmetro) | agora 125 mm (polia 52 mm) | 120–130 mm |
 | 2.2 | ✅ | Motor de arranque (diâmetro) | agora 73 mm, solenoide maior | 70–80 mm |
-| 2.3 | B | Compressor do A/C (diâmetro) | 88 mm | 110–125 mm |
-| 2.4 | B | Bomba da direção (corpo) | 64 mm | 80–100 mm |
-| 2.5 | B | Corpo de borboleta (furo) | 49 mm | 60–65 mm |
-| 2.6 | B | Polia do virabrequim | 122 mm | 140–150 mm |
+| 2.3 | ✅ | Compressor do A/C (diâmetro) | agora 115 mm (polia 100 mm) | 110–125 mm |
+| 2.4 | ✅ | Bomba da direção (corpo) | agora 85 mm | 80–100 mm |
+| 2.5 | ✅ | Corpo de borboleta (furo) | agora 62 mm (duto de ar acompanhou) | 60–65 mm |
+| 2.6 | ✅ | Polia do virabrequim | agora 145 mm (canal da frente 127 mm) | 140–150 mm |
 | 2.7 | C | Velas | 149 mm de ponta a ponta | 80–90 mm (o cabeçote do modelo é mais grosso que o real; a vela foi esticada até a bobina) |
 | — | ok | Filtro de óleo | 65 mm | 65–68 mm |
 
@@ -43,15 +43,15 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 | 3.2 | ✅ | Bloco | Nova peça "Junção das metades do bloco": linha de união em cima e embaixo, no plano do virabrequim, e 3 ressaltos com parafusos atravessados no alto. O sensor de detonação foi para a metade direita. |
 | 3.3 | ✅ | Correia dentada | Agora com dentes na face interna (passo de 9,5 mm), encaixando nas engrenagens; as polias lisas tocam o dorso. |
 | 3.4 | ✅ | Tensor da correia dentada | Ganhou o tensor automático hidráulico: cilindro em pé, preso por duas orelhas, com a haste apoiada na ponta do braço. |
-| 3.5 | B | Engrenagens dos comandos de admissão | São lisas. **Manual:** as de admissão têm no centro a tampa do atuador do AVCS (actuator cover), com O-ring. |
-| 3.6 | B | Capas da correia dentada | Seguem o contorno das polias. **Manual (ME-03560):** as externas são três (esquerda, direita e frontal central), como já está. Atrás das engrenagens ainda há as capas internas No. 2 esquerda e direita, que faltam no modelo. |
-| 3.7 | B | Coletor de escape | Traçado simplificado; o do GH 2.0R tem dutos de comprimentos equalizados e flanges com prisioneiros e porcas. |
-| 3.8 | B | Coletor de admissão | Plenum em caixa simples; o original é de resina com formato orgânico e os bicos encaixados no próprio coletor. |
-| 3.9 | B | Válvulas | Faltam as travas (retainer key), os retentores de haste, as guias e os tuchos (valve lifter), todos listados no manual. |
-| 3.10 | B | Pistões (modelo de origem) | Peça única: sem anéis nem pino visíveis separadamente. |
-| 3.11 | B | Vareta de óleo | Está na traseira esquerda. **Manual (ME-03561, item 23):** o guia da vareta sai do bloco esquerdo, na frente, e desce até o cárter. |
-| 3.12 | B | Sensor de temperatura do líquido | Está na carcaça da termostática. **Manual:** para tirá-lo é preciso remover o alternador, então ele fica na frente, sob o coletor, logo atrás do alternador. |
-| 3.13 | B | Tampa de abastecimento de óleo | Está na tampa do cabeçote direito. **Manual (ME-03566, itens 23–26):** é um bocal próprio (oil filler duct), com junta, O-ring e tampa, aparafusado na frente do cabeçote e separado da tampa de válvulas. |
+| 3.5 | ✅ | Engrenagens dos comandos de admissão | Ganharam a tampa do atuador do AVCS com O-ring e parafusos, girando junto com a engrenagem. |
+| 3.6 | B | Capas da correia dentada | As internas No. 2 foram feitas (ver 4.11). Falta o formato das externas: hoje seguem o contorno das polias, e as reais têm desenho próprio, com janela para as marcas de ponto. |
+| 3.7 | B | Coletor de escape | Ganhou 2 prisioneiros com porca em cada flange. Falta: os dutos ainda têm traçado simplificado, e não de comprimentos equalizados. |
+| 3.8 | ✅ | Coletor de admissão | Plenum de resina, de formas arredondadas, com nervuras moldadas; dutos e flanges também de resina. |
+| 3.9 | ✅ | Válvulas | Ganharam travas (meias-luas), guias e retentores de haste; os tuchos já existiam. |
+| 3.10 | ✅ | Pistões | Ganharam os 3 anéis, o pino e as travas do pino, que se movem junto com o pistão. |
+| 3.11 | ✅ | Vareta de óleo | Tubo-guia sai da lateral esquerda do bloco, na frente, acima do cárter; passa sob o cabeçote e sobe por fora das engrenagens, como no manual. |
+| 3.12 | ✅ | Sensor de temperatura do líquido | Agora na passagem de água da base de admissão direita, atrás do alternador, como no manual. |
+| 3.13 | ✅ | Tampa de óleo | Agora é o bocal do manual: flange com junta na frente do cabeçote esquerdo, tubo que sobe e tampa com O-ring. |
 
 ## 4. Peças que ainda faltam
 
@@ -59,16 +59,16 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 |---|---|---|---|
 | 4.1 | ✅ | Tubo de água (by-pass) | Tubo de aço sobre o bloco, sob o coletor, com flange na frente, presilhas e dois bicos atrás (aquecimento e borboleta), como o item 33 do manual. |
 | 4.2 | ✅ | Parafusos dos cabeçotes | 6 por lado, com arruela, dentro do cabeçote sob os comandos; aparecem na explosão. |
-| 4.3 | B | Bronzinas do virabrequim e arruelas de encosto | Só as bielas têm bronzina. |
-| 4.4 | B | Anéis e pinos dos pistões | Ligado ao item 3.10. |
-| 4.5 | B | Gancho de içamento | O manual lista o "engine rear hanger", no alto do bloco, na traseira. |
-| 4.6 | B | Cabo de massa (aterramento) do motor | Liga o motor à carroceria/bateria. |
-| 4.7 | B | Rolamento e garfo da embreagem / cilindro auxiliar | Fazem parte do conjunto da embreagem/câmbio. |
+| 4.3 | ✅ | Bronzinas do virabrequim | 5 pares de meias-buchas (#1 a #5). As arruelas de encosto não foram feitas: o manual não as lista separadas. |
+| 4.4 | ✅ | Anéis e pinos dos pistões | Ver 3.10. |
+| 4.5 | ✅ | Gancho de içamento | O "engine rear hanger": base aparafusada no alto do bloco, atrás, com olhal. |
+| 4.6 | ✅ | Cabo de massa | Cordoalha com olhal no alto do bloco, atrás à esquerda, seguindo para a carroceria. |
+| 4.7 | B | Rolamento e garfo da embreagem | Rolamento e garfo com pino de apoio feitos. Falta o cilindro auxiliar (acionamento): confirmar no manual de transmissão se o GH 2.0 é a cabo ou hidráulico. |
 | 4.8 | C | Defletor de óleo do cárter | Confirmado no manual (baffle plate, entre o bloco e o cárter). |
 | 4.9 | C | Suportes do escape (coxins/ganchos) | O catalisador fica preso só pelo próprio tubo. |
 | 4.10 | C | Fora do motor (opcional): radiador e ventoinha, caixa do filtro de ar, travessa dianteira, coxim do câmbio | Hoje as mangueiras, o duto de ar e os coxins terminam abertos porque essas peças são do carro. |
 
-| 4.11 | B | Capas internas da correia (No. 2 esquerda e direita) | Ver 3.6. |
+| 4.11 | ✅ | Capas internas da correia (No. 2) | Chapas atrás das engrenagens dos comandos, com furos dos cubos e parafusos na borda. |
 | 4.12 | C | Guia da correia dentada (só no câmbio manual) | Peça pequena junto à engrenagem do virabrequim. |
 | 4.13 | C | Tampa do separador de óleo, tampas e bujões de serviço do bloco | Listados no manual (ME-03561). |
 
