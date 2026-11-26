@@ -44,8 +44,8 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 | 3.3 | ✅ | Correia dentada | Agora com dentes na face interna (passo de 9,5 mm), encaixando nas engrenagens; as polias lisas tocam o dorso. |
 | 3.4 | ✅ | Tensor da correia dentada | Ganhou o tensor automático hidráulico: cilindro em pé, preso por duas orelhas, com a haste apoiada na ponta do braço. |
 | 3.5 | ✅ | Engrenagens dos comandos de admissão | Ganharam a tampa do atuador do AVCS com O-ring e parafusos, girando junto com a engrenagem. |
-| 3.6 | B | Capas da correia dentada | As internas No. 2 foram feitas (ver 4.11). Falta o formato das externas: hoje seguem o contorno das polias, e as reais têm desenho próprio, com janela para as marcas de ponto. |
-| 3.7 | B | Coletor de escape | Ganhou 2 prisioneiros com porca em cada flange. Falta: os dutos ainda têm traçado simplificado, e não de comprimentos equalizados. |
+| 3.6 | ✅ | Capas da correia dentada | Internas No. 2 feitas (4.11). Externas: aba saliente na borda, abaulados redondos sobre as engrenagens, parafusos com arruela e escala de ponto (0°/10°/20°) abaixo da polia; a central sobe por trás das laterais e fecha a correia toda. |
+| 3.7 | ✅ | Coletor de escape | Dutos de comprimentos iguais (481 mm cada; os da frente fazem uma volta), 2 prisioneiros com porca por flange. |
 | 3.8 | ✅ | Coletor de admissão | Plenum de resina, de formas arredondadas, com nervuras moldadas; dutos e flanges também de resina. |
 | 3.9 | ✅ | Válvulas | Ganharam travas (meias-luas), guias e retentores de haste; os tuchos já existiam. |
 | 3.10 | ✅ | Pistões | Ganharam os 3 anéis, o pino e as travas do pino, que se movem junto com o pistão. |
@@ -63,7 +63,7 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 | 4.4 | ✅ | Anéis e pinos dos pistões | Ver 3.10. |
 | 4.5 | ✅ | Gancho de içamento | O "engine rear hanger": base aparafusada no alto do bloco, atrás, com olhal. |
 | 4.6 | ✅ | Cabo de massa | Cordoalha com olhal no alto do bloco, atrás à esquerda, seguindo para a carroceria. |
-| 4.7 | B | Rolamento e garfo da embreagem | Rolamento e garfo com pino de apoio feitos. Falta o cilindro auxiliar (acionamento): confirmar no manual de transmissão se o GH 2.0 é a cabo ou hidráulico. |
+| 4.7 | ✅ | Acionamento da embreagem | Hidráulico, conforme o manual (CL-00547/00569): garfo com pivô e mola, capa de pó, cilindro auxiliar com haste, sangrador e mangueira; rolamento axial. |
 | 4.8 | C | Defletor de óleo do cárter | Confirmado no manual (baffle plate, entre o bloco e o cárter). |
 | 4.9 | C | Suportes do escape (coxins/ganchos) | O catalisador fica preso só pelo próprio tubo. |
 | 4.10 | C | Fora do motor (opcional): radiador e ventoinha, caixa do filtro de ar, travessa dianteira, coxim do câmbio | Hoje as mangueiras, o duto de ar e os coxins terminam abertos porque essas peças são do carro. |
