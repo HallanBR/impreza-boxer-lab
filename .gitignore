@@ -8,3 +8,4 @@ modelos/*.glb
 
 # configuração local
 .claude/
+_auditoria.html
