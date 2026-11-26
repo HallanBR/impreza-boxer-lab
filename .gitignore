@@ -9,3 +9,6 @@ modelos/*.glb
 # configuração local
 .claude/
 _auditoria.html
+
+# manuais de fábrica (direitos autorais da Subaru): ficam só no computador
+Docs/

@@ -16,6 +16,10 @@ window.__audit = () => { const cell = .008, grid = new Map(), K = (x, y, z) => M
     P2.get(p).forEach(q => { const cx = Math.floor(q[0]/cell), cy = Math.floor(q[1]/cell), cz = Math.floor(q[2]/cell);
       for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) { const s = grid.get((cx+dx) + ',' + (cy+dy) + ',' + (cz+dz)); if (s) s.forEach(j => { if (j !== i) touch.set(j, (touch.get(j) || 0) + 1); }); } });
     return { id: p.id, toca: [...touch.entries()].sort((a, b) => b[1] - a[1]).map(([j, n]) => PARTS[j].id + ':' + n) }; }); };
+window.__pb = pieceByName; window.__parts = partById; window.__ray = rayHit;
+// câmera para inspeção: __fly([x,y,z], [alvo]) em coordenadas de cena; __state dá acesso a explode/rot/running
+window.__fly = (p, t) => flyTo(new THREE.Vector3(...p), new THREE.Vector3(...t), .05); window.__state = state; window.__sync = syncUI;
+window.__bb = n => { const b = pieceByName[n].mesh.geometry.boundingBox; return n + ' ' + [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z].map(v => v.toFixed(3)).join(','); };
 window.__box = id => partById[id].pcs.map(pc => { const b = pc.mesh.geometry.boundingBox; return [b.min, b.max].map(v => [v.x, v.y, v.z].map(n => n.toFixed(3)).join(',')).join(' → '); });
 window.__near = (a, b) => { const A = __pts(partById[a], .004), B = __pts(partById[b], .004), cell = .01, g = new Map(), K = (x, y, z) => Math.floor(x/cell) + ',' + Math.floor(y/cell) + ',' + Math.floor(z/cell);
   B.forEach(q => { const k = K(...q); (g.get(k) || g.set(k, []).get(k)).push(q); });

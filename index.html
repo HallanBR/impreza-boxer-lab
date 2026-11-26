@@ -229,7 +229,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { toCreasedNormals, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
@@ -304,6 +304,7 @@ const M = {
 // ---------- geometria utilitária (peças modeladas à parte)
 const cylY = (r, l, s = 32) => new THREE.CylinderGeometry(r, r, l, s);
 const cylZ = (r, l, s = 32) => new THREE.CylinderGeometry(r, r, l, s).rotateX(Math.PI/2);
+const alongXcyl = (r, l, s = 32) => new THREE.CylinderGeometry(r, r, l, s).rotateZ(Math.PI/2);
 const rbox = (x, y, z, r = .005) => new RoundedBoxGeometry(x, y, z, 3, r);
 const lathe = (pts, seg = 48) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 const toZ = g => g.rotateX(Math.PI/2);
@@ -324,7 +325,7 @@ const hole = (s, x, y, r) => { const h = new THREE.Path(); h.absarc(x, y, r, 0, 
 // como no EJ do Impreza: correia de trás (z) virabrequim → alternador → bomba da direção hidráulica;
 // correia da frente (z2) virabrequim → tensor → compressor do ar-condicionado (embaixo, à direita)
 const ACC = { z: -.342, z2: -.375, crank: { x: -.004, y: .344, r: .08 }, crank2: { x: -.004, y: .344, r: .07 },
-  alt: { x: .30, y: .595, r: .024 }, ps: { x: -.30, y: .60, r: .045 }, comp: { x: .30, y: .10, r: .05 },
+  alt: { x: .30, y: .595, r: .034 }, ps: { x: -.30, y: .60, r: .045 }, comp: { x: .30, y: .10, r: .05 },
   // polia tensora no vão livre entre a correia dentada e as engrenagens, num suporte de chapa preso à frente do bloco
   idler: { x: .22, y: .30, r: .025 } };
 class Helix extends THREE.Curve { constructor(r, len, turns){ super(); this.r = r; this.len = len; this.t = turns; }
@@ -360,6 +361,8 @@ const VALVES = ['G36','G37','G38','G39','G46','G47','G48','G49','G40','G41','G42
 const PARTS = [
   { id: 'bloco', name: 'Bloco do motor', cat: 0, pieces: ['G0','G64','G70','G71','G77'], mat: 'cast', ex: [0,0,0], xray: true, stl: ['engine_block_1_scaled','engine_block_2_scaled'],
     desc: 'O bloco do boxer Subaru é dividido verticalmente em duas metades aparafusadas. Cada metade carrega dois cilindros e metade dos mancais do virabrequim.', spec: 'Alumínio · camisas de ferro · 5 mancais' },
+  { id: 'uniaoBloco', name: 'Junção das metades do bloco', cat: 0, build: 'blockSplit', mat: 'cast', ex: [0, 0, 0],
+    desc: 'O bloco do boxer é fundido em duas metades, direita e esquerda, unidas no plano vertical que passa pelo virabrequim. A linha de união aparece em cima e embaixo do bloco; no alto, ressaltos com parafusos atravessados apertam uma metade contra a outra.', spec: 'Junção vertical · parafusos passantes' },
   { id: 'carter', name: 'Cárter de óleo', cat: 0, pieces: ['G11'], mat: 'cast', ex: [0,-.6,0], xray: true, stl: ['oil_pan_-_no_electronics_scaled'],
     desc: 'Reservatório de óleo preso por baixo do bloco. A bomba puxa o óleo daqui pelo pescador.', spec: 'Capacidade ≈ 4 L com filtro' },
   { id: 'bombaOleo', name: 'Bomba de óleo e tampa frontal', cat: 0, pieces: ['G8'], mat: 'cast', ex: [0,-.05,-.62], stl: ['Oil_Pump_scaled'],
@@ -400,8 +403,8 @@ const PARTS = [
 
   { id: 'correia', name: 'Correia dentada', cat: 3, build: 'belt', mat: 'rubber', ex: [0,0,-.42],
     desc: 'Sincroniza o virabrequim com os quatro comandos e move a bomba d’água. O EJ20 é um motor de interferência: se a correia romper, pistões e válvulas podem se tocar.', spec: 'Borracha com lonas · troca conforme o manual' },
-  { id: 'tensor', name: 'Tensor da correia', cat: 3, pieces: ['G56','G81','G69'], mat: 'cast', ex: [-.05,.15,-.55], kin: 'idler', stl: ['Tensioner_scaled','Tensioner_plate_scaled','Tensioner_pulley_scaled'],
-    desc: 'Mantém a correia dentada esticada na medida certa. O braço com a polia é empurrado por um tensor hidráulico.', spec: 'Tensor hidráulico · polia com rolamento' },
+  { id: 'tensor', name: 'Tensor da correia', cat: 3, pieces: ['G56','G81','G69'], build: 'beltAdjuster', mat: 'cast', ex: [-.05,.15,-.55], kin: 'idler', stl: ['Tensioner_scaled','Tensioner_plate_scaled','Tensioner_pulley_scaled'],
+    desc: 'Mantém a correia dentada esticada na medida certa. O braço com a polia é empurrado pelo tensor automático: um cilindro hidráulico com mola, aparafusado no suporte, cuja haste apoia na ponta do braço.', spec: 'Tensor automático hidráulico · polia com rolamento' },
   { id: 'polias', name: 'Polias guia', cat: 3, pieces: ['G65','G66','G67'], mat: 'plastic', ex: [0,-.05,-.5], kin: 'idler', stl: ['Timing_Pulley_scaled'],
     desc: 'Rodas lisas e dentadas que guiam a correia pelo caminho certo entre o virabrequim e os comandos.', spec: 'Com rolamento selado' },
   { id: 'bombaAgua', name: 'Bomba d’água', cat: 3, pieces: ['G13','G68'], mat: 'cast', ex: [-.12,-.05,-.6], kin: 'idler', stl: ['Water_Pump_scaled'],
@@ -440,6 +443,10 @@ const PARTS = [
     desc: 'O suporte de aço é aparafusado com três parafusos na lateral do cárter do bloco. Na ponta dele fica o coxim de borracha, inclinado para fora, que se apoia na travessa dianteira (fora do modelo) e filtra a vibração antes de ela chegar à carroceria.', spec: 'Suporte de aço · coxim inclinado com 2 prisioneiros' })),
   ...[1, -1].map(s => ({ id: 'junta' + (s > 0 ? 'D' : 'E'), name: `Junta do cabeçote — ${side(s)}`, cat: 2, build: 'headGaskets', s, mat: 'zinc', ex: [s*.45, 0, 0],
     desc: 'Lâmina metálica entre o bloco e o cabeçote. Veda a combustão de cada cilindro e separa os canais de óleo e de água.', spec: 'Multicamadas de aço (MLS)' })),
+  ...[1, -1].map(s => ({ id: 'parafusosCab' + (s > 0 ? 'D' : 'E'), name: `Parafusos do cabeçote — ${side(s)}`, cat: 2, build: 'headBolts', s, mat: 'steel', ex: [s*.84, 0, 0],
+    desc: 'Seis parafusos longos por cabeçote. Passam por dentro do cabeçote, entre os comandos, e rosqueiam no bloco, apertando a junta. No motor montado ficam escondidos sob os comandos.', spec: '6 por cabeçote · aperto em etapas + ângulo' })),
+  { id: 'tuboAgua', name: 'Tubo de água (by-pass) sobre o bloco', cat: 3, build: 'waterPipe', mat: 'steel', ex: [0, .5, 0],
+    desc: 'Tubo de aço que corre por cima do bloco, sob o coletor de admissão. Leva o líquido de arrefecimento da frente para a traseira do motor, onde saem as mangueiras do aquecimento e do corpo de borboleta.', spec: 'Aço · presilhas aparafusadas no bloco' },
   { id: 'capas', name: 'Capas da correia dentada', cat: 3, build: 'timingCovers', mat: 'plastic', ex: [0, 0, -1.05], covers: true, xray: true,
     desc: 'Três capas plásticas (esquerda, direita e central) que protegem a correia e as polias. Ficam escondidas por padrão para a correia aparecer; ligue “Mostrar capas da correia”.', spec: 'Plástico · três peças' },
   { id: 'poliaAcess', name: 'Polia de acessórios do virabrequim', cat: 8, build: 'accPulley', mat: 'forged', ex: [0, -.05, -.85], kin: 'crank',
@@ -559,7 +566,22 @@ const BUILD = {
     const T = .007, wheels = BELT.map(([name, s]) => {
       const b = pieceByName[name].mesh.geometry.boundingBox, c = b.getCenter(new THREE.Vector3()), sz = b.getSize(new THREE.Vector3());
       return { x: c.x, y: c.y, r: Math.max(sz.x, sz.y)/2 + T/2, s }; });
-    add(beltGeometry(wheels, T, .03, -.252), 'rubber');
+    // dentes de perfil redondo do EJ: passo de 9,5 mm, altura de ≈ 3,5 mm
+    add(beltGeometry(wheels, T, .03, -.252, { p: .0125, h: .0046, w: .0085 }), 'rubber');
+  },
+  // tensor automático (automatic belt tension adjuster): cilindro hidráulico em pé sobre a ponta do braço do tensor,
+  // preso por duas orelhas na frente do suporte; a haste desce e empurra o braço, que aperta a polia contra a correia
+  beltAdjuster(add) {
+    // no mesmo plano do braço (z ≈ -0,21), logo à frente da face do bloco
+    const x = -.105, z = -.21, arm = rayHit(['G81'], [x, .6, z], [0, -1, 0])?.y ?? .4, face = rayHit(['G0'], [x, .46, -1.2], [0, 0, 1])?.z ?? -.188;
+    const r = .0145, y0 = arm + .016, len = .072;
+    add(lathe([[0,0],[r,0],[r + .001,.004],[r + .001,len - .006],[r - .002,len],[0,len]], 32), 'steel', [x, y0, z]);
+    add(new THREE.TorusGeometry(r + .0012, .0012, 6, 32).rotateX(Math.PI/2), 'steel', [x, y0 + len*.55, z]);
+    add(cylY(.0045, .018, 12), 'steel', [x, arm + .008, z]);
+    add(lathe([[0,0],[.007,0],[.007,.003],[0,.003]], 16), 'steel', [x, arm - .001, z]);
+    // orelhas com os parafusos que prendem o cilindro no suporte
+    [-1, 1].forEach(k => { add(rbox(.016, .012, .006, .003), 'zinc', [x + k*(r + .006), y0 + len - .015, face - .004]);
+      add(new THREE.CylinderGeometry(.005, .005, .005, 6).rotateX(Math.PI/2), 'zinc', [x + k*(r + .008), y0 + len - .015, face - .009]); });
   },
   // polia de acessórios na ponta do virabrequim, na frente da correia dentada
   // polia dupla: canal de trás para alternador e direção, canal da frente para o ar-condicionado
@@ -762,6 +784,55 @@ const BUILD = {
     add(cylY(.006, .035, 10).applyQuaternion(q), 'zinc', at(.068));
     add(new THREE.CylinderGeometry(.009, .009, .007, 6).applyQuaternion(q), 'zinc', at(.08));
   },
+  // linha de união das duas metades do bloco (em cima e embaixo, no plano do virabrequim) e ressaltos com parafusos
+  // atravessados no alto; o parafuso entra por um lado e a porca fica do outro
+  blockSplit(add) {
+    const x = CX, zs = [], top = [], bot = [];
+    for (let z = -.2; z <= .215; z += .01) zs.push(z);
+    zs.forEach(z => { const a = rayHit(['G0'], [x, 1.2, z], [0, -1, 0]), b = rayHit(['G0'], [x, -1, z], [0, 1, 0]);
+      if (a) top.push([x, a.y + .0008, z]); if (b) bot.push([x, b.y - .0008, z]); });
+    // segmentos curtos numa malha só: a superfície do bloco tem degraus, a linha acompanha sem atravessar
+    const line = pts => { const segs = [];
+      for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], l = Math.hypot(b[1] - a[1], b[2] - a[2]); if (l > .03) continue;
+        segs.push(new THREE.BoxGeometry(.0035, .0018, l + .0006).rotateX(-Math.atan2(b[1] - a[1], b[2] - a[2])).translate(0, (a[1] + b[1])/2, (a[2] + b[2])/2).toNonIndexed()); }
+      if (segs.length) add(mergeGeometries(segs.map(g => { g.deleteAttribute('uv'); return g; })), 'dark', [x, 0, 0]); };
+    line(top); line(bot);
+    [-.12, -.045, .125].forEach(z => { const y = (rayHit(['G0'], [x, 1.2, z], [0, -1, 0])?.y ?? .49);
+      add(rbox(.058, .016, .02, .004), 'cast', [x, y + .006, z]);
+      add(new THREE.BoxGeometry(.0035, .017, .021), 'dark', [x, y + .0065, z]);
+      add(alongXcyl(.0045, .07, 12), 'steel', [x, y + .008, z]);
+      add(new THREE.CylinderGeometry(.0075, .0075, .007, 6).rotateZ(Math.PI/2), 'zinc', [x + .033, y + .008, z]);
+      add(new THREE.CylinderGeometry(.0075, .0075, .007, 6).rotateZ(Math.PI/2), 'zinc', [x - .033, y + .008, z]); });
+  },
+  // parafusos do cabeçote: 6 por lado, em volta dos dois cilindros; a cabeça apoia numa arruela dentro do cabeçote
+  headBolts(add, p) {
+    const s = p.s, cyl = CYLS.filter(c => c.s === s).map(c => c.z).sort((a, b) => a - b), zs = [cyl[0] - .06, (cyl[0] + cyl[1])/2, cyl[1] + .06];
+    zs.forEach(z => [CY - .066, CY + .066].forEach(y => {
+      add(alongXcyl(.0055, .18, 16), 'steel', [s*.29, y, z]);
+      add(alongXcyl(.0115, .003, 24), 'zinc', [s*.3815, y, z]);
+      add(new THREE.CylinderGeometry(.009, .009, .009, 6).rotateZ(Math.PI/2), 'steel', [s*.3875, y, z]);
+    }));
+  },
+  // tubo de água sobre o bloco, à esquerda da junção das metades: flange aparafusada na frente, presilhas no meio
+  // e, atrás, dois bicos para as mangueiras do aquecimento e do corpo de borboleta
+  waterPipe(add) {
+    const x = -.08, top = z => (rayHit(['G0'], [x, 1.2, z], [0, -1, 0])?.y ?? .47) + .014, zs = [-.15, -.08, 0, .08, .15];
+    const pts = zs.map(z => [x, top(z), z]);
+    add(tube(pts, .008, false, 60, 14), 'steel');
+    add(rbox(.03, .006, .026, .003), 'cast', [x, pts[0][1] - .011, -.15]);
+    add(toZ(lathe([[.008,0],[.013,0],[.013,.012],[.009,.016]], 20)).scale(1, 1, -1), 'cast', [x, pts[0][1], -.152]);
+    [-.012, .012].forEach(dx => add(new THREE.CylinderGeometry(.005, .005, .005, 6), 'zinc', [x + dx, pts[0][1] - .006, -.15]));
+    [-.08, .08].forEach(z => { const y = top(z) - .014;
+      add(new THREE.TorusGeometry(.0095, .0018, 6, 20, Math.PI).rotateY(Math.PI/2), 'zinc', [x, y + .014, z]);
+      add(rbox(.024, .003, .008, .001), 'zinc', [x, y + .0015, z]);
+      add(new THREE.CylinderGeometry(.004, .004, .004, 6), 'zinc', [x - .01, y + .004, z]); });
+    const e = pts[pts.length - 1];
+    add(toZ(lathe([[0,0],[.0085,0],[.0085,.012],[.006,.016],[0,.016]], 20)), 'steel', [e[0], e[1], e[2]]);
+    [[-.01, .006], [.012, .005]].forEach(([dx, r]) => {
+      add(cylY(r, .03, 12), 'steel', [x + dx, e[1] + .015, e[2] - .004]);
+      add(tube([[x + dx, e[1] + .03, e[2] - .004], [x + dx*1.5, e[1] + .06, e[2] + .02], [x + dx*2.5, e[1] + .08, e[2] + .09]], r + .003, false, 24, 10), 'rubber');
+      add(new THREE.TorusGeometry(r + .004, .0018, 6, 18).rotateX(Math.PI/2), 'zinc', [x + dx, e[1] + .026, e[2] - .004]); });
+  },
   headGaskets(add, p) {
     // a junta fica entre o bloco e o cabeçote: o contorno externo vem do corte da face do cabeçote, e os furos
     // (cilindros, galerias de água, passagens de óleo, parafusos) vêm do corte da face do bloco, só os que caem dentro dela
@@ -805,7 +876,7 @@ const BUILD = {
   },
 };
 // correia: trechos retos tangentes entre as polias + arcos exatos em cada uma
-function beltGeometry(wheels, T, W, Z) {
+function beltGeometry(wheels, T, W, Z, teeth = null) {
     const n = wheels.length, tan = [];
     for (let i = 0; i < n; i++) {          // tangente da polia i para a i+1; s=+1: polia à direita do sentido da correia
       const A = wheels[i], B = wheels[(i + 1) % n], Dx = B.x - A.x, Dy = B.y - A.y, L = Math.hypot(Dx, Dy), phi = Math.atan2(Dy, Dx);
@@ -826,6 +897,23 @@ function beltGeometry(wheels, T, W, Z) {
     pts.forEach((p, i) => { const a = pts[(i - 1 + m) % m], b = pts[(i + 1) % m], tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1, nx = -ty/l, ny = tx/l;
       for (const [o, zz] of [[1, 1], [1, -1], [-1, -1], [-1, 1]]) pos.push(p[0] + nx*o*T/2, p[1] + ny*o*T/2, Z + zz*W/2); });
     for (let i = 0; i < m; i++) { const j = (i + 1) % m; for (let k = 0; k < 4; k++) { const a = i*4 + k, b = i*4 + (k + 1) % 4, c = j*4 + (k + 1) % 4, d = j*4 + k; idx.push(a, b, c, a, c, d); } }
+    // dentes trapezoidais na face interna (a que abraça as engrenagens), um a cada passo medido ao longo da correia
+    if (teeth) {
+      let area = 0; pts.forEach((q, i) => { const w = pts[(i + 1) % m]; area += q[0]*w[1] - w[0]*q[1]; });
+      const inward = area > 0 ? 1 : -1, cum = [0];
+      for (let i = 1; i <= m; i++) cum.push(cum[i - 1] + Math.hypot(pts[i % m][0] - pts[i - 1][0], pts[i % m][1] - pts[i - 1][1]));
+      const total = cum[m], n = Math.round(total/teeth.p);
+      for (let k = 0, i = 0; k < n; k++) {
+        const s = k*total/n; while (cum[i + 1] < s) i++;
+        const a = pts[i], b = pts[(i + 1) % m], u = (s - cum[i])/((cum[i + 1] - cum[i]) || 1), px = a[0] + (b[0] - a[0])*u, py = a[1] + (b[1] - a[1])*u;
+        const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, tx = (b[0] - a[0])/l, ty = (b[1] - a[1])/l, nx = -ty*inward, ny = tx*inward;
+        const v0 = pos.length/3, r0 = T/2 - .0005, r1 = T/2 + teeth.h;
+        for (const [o, hw] of [[r0, teeth.w/2], [r1, teeth.w*.32]]) for (const sg of [-1, 1]) for (const zz of [-1, 1])
+          pos.push(px + nx*o + tx*sg*hw, py + ny*o + ty*sg*hw, Z + zz*W/2);
+        // vértices: 0..3 base (sg,zz), 4..7 topo; faces do bloco
+        [[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]].forEach(([a0, b0, c0, d0]) => idx.push(v0 + a0, v0 + b0, v0 + c0, v0 + a0, v0 + c0, v0 + d0));
+      }
+    }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
     return toCreasedNormals(g, Math.PI/4);
 }
@@ -901,8 +989,8 @@ Object.assign(BUILD, {
     });
   },
   knockSensor(add) {
-    // aparafusado direto no topo do bloco, entre os cilindros (superfície medida no modelo)
-    const x = 0, z = .05, y = rayHit(["G0"], [x, 1.2, z], [0, -1, 0])?.y ?? .497;
+    // aparafusado direto no topo do bloco, entre os cilindros, na metade direita (superfície medida no modelo)
+    const x = .035, z = .05, y = rayHit(["G0"], [x, 1.2, z], [0, -1, 0])?.y ?? .497;
     add(lathe([[0,0],[.016,0],[.016,.011],[.009,.014],[0,.014]], 32), 'dark', [x, y, z]);
     add(cylY(.004, .02, 8), 'zinc', [x, y + .018, z]);
     add(rbox(.016, .01, .014, .002), 'plastic', [x + .02, y + .007, z]);
@@ -984,25 +1072,25 @@ Object.assign(BUILD, {
     add(ext(hole(gearShape(.014, 9, .004), 0, 0, .004), .018, .001, 4), 'steel', [x, y, .214]);
     add(cylZ(.006, .04, 12), 'steel', [x, y, .232]);
     // carcaça dianteira de alumínio com o nariz e a flange de dois furos aparafusada na carcaça da embreagem
-    add(toZ(lathe([[.017,0],[.024,0],[.028,.012],[.03,.03],[.034,.045],[.036,.06]], 40)), 'cast', [x, y, .228]);
-    const fl = rrect(.12, .05, .018); hole(fl, -.042, 0, .007); hole(fl, .042, 0, .007);
-    add(ext(fl, .01).rotateZ(a + Math.PI/2), 'cast', [x, y, .25]);
-    [-.042, .042].forEach(d => add(new THREE.CylinderGeometry(.008, .008, .007, 6).rotateX(Math.PI/2), 'zinc', [x - oy*d, y + ox*d, .258]));
-    // motor elétrico: carcaça preta, tampa traseira com mancal e os dois parafusos passantes
-    add(cylZ(.034, .11, 40), 'dark', [x, y, .343]);
-    [.3, .385].forEach(z => add(new THREE.TorusGeometry(.0345, .0015, 6, 40), 'steel', [x, y, z]));
-    add(toZ(lathe([[0,0],[.034,0],[.034,.008],[.026,.016],[.012,.018],[.012,.026],[0,.026]], 40)), 'cast', [x, y, .398]);
-    [1, -1].forEach(k => { const px = x - oy*k*.026, py = y + ox*k*.026;
-      add(cylZ(.0025, .14, 8), 'steel', [px, py, .35]); add(new THREE.CylinderGeometry(.005, .005, .005, 6).rotateX(Math.PI/2), 'zinc', [px, py, .423]); });
+    add(toZ(lathe([[.017,0],[.026,0],[.032,.012],[.038,.03],[.045,.045],[.05,.06]], 48)), 'cast', [x, y, .228]);
+    const fl = rrect(.145, .06, .022); hole(fl, -.052, 0, .008); hole(fl, .052, 0, .008);
+    add(ext(fl, .012).rotateZ(a + Math.PI/2), 'cast', [x, y, .25]);
+    [-.052, .052].forEach(d => add(new THREE.CylinderGeometry(.009, .009, .008, 6).rotateX(Math.PI/2), 'zinc', [x - oy*d, y + ox*d, .26]));
+    // motor elétrico de Ø ≈ 75 mm: carcaça preta, tampa traseira com mancal e os dois parafusos passantes
+    add(cylZ(.048, .13, 48), 'dark', [x, y, .353]);
+    [.3, .4].forEach(z => add(new THREE.TorusGeometry(.0485, .0018, 6, 48), 'steel', [x, y, z]));
+    add(toZ(lathe([[0,0],[.048,0],[.048,.009],[.036,.019],[.016,.021],[.016,.03],[0,.03]], 48)), 'cast', [x, y, .418]);
+    [1, -1].forEach(k => { const px = x - oy*k*.036, py = y + ox*k*.036;
+      add(cylZ(.003, .17, 8), 'steel', [px, py, .36]); add(new THREE.CylinderGeometry(.006, .006, .006, 6).rotateX(Math.PI/2), 'zinc', [px, py, .446]); });
     // solenoide por cima do motor, com os terminais (cabo da bateria e fio de comando)
-    const sx = x + ox*.054, sy = y + oy*.054;
-    add(cylZ(.02, .085, 32), 'zinc', [sx, sy, .3]);
-    add(toZ(lathe([[0,0],[.02,0],[.02,.006],[.015,.014],[0,.014]], 32)), 'plastic', [sx, sy, .342]);
-    [[.008, .005, .01], [-.008, .003, .007]].forEach(([d, r, h]) => {
-      add(cylZ(r, h + .012, 12), 'bronze', [sx - oy*d, sy + ox*d, .36]);
-      add(new THREE.CylinderGeometry(r + .003, r + .003, .004, 6).rotateX(Math.PI/2), 'zinc', [sx - oy*d, sy + ox*d, .362]); });
-    add(tube([[sx - oy*.008, sy + ox*.008, .37], [sx + ox*.02, sy + oy*.03, .42], [sx + ox*.05, sy + oy*.05, .52]], .006, false, 24, 10), 'rubber');
-    add(tube([[sx + oy*.008, sy - ox*.008, .368], [sx + ox*.01 - oy*.03, sy + oy*.01 + ox*.03, .43], [sx - oy*.05, sy + ox*.06, .5]], .0025, false, 20, 6), 'rubber');
+    const sx = x + ox*.075, sy = y + oy*.075;
+    add(cylZ(.026, .1, 32), 'zinc', [sx, sy, .305]);
+    add(toZ(lathe([[0,0],[.026,0],[.026,.007],[.02,.016],[0,.016]], 32)), 'plastic', [sx, sy, .355]);
+    [[.01, .006, .01], [-.01, .0035, .007]].forEach(([d, r, h]) => {
+      add(cylZ(r, h + .012, 12), 'bronze', [sx - oy*d, sy + ox*d, .375]);
+      add(new THREE.CylinderGeometry(r + .003, r + .003, .004, 6).rotateX(Math.PI/2), 'zinc', [sx - oy*d, sy + ox*d, .377]); });
+    add(tube([[sx - oy*.01, sy + ox*.01, .385], [sx + ox*.02, sy + oy*.03, .43], [sx + ox*.05, sy + oy*.05, .53]], .007, false, 24, 10), 'rubber');
+    add(tube([[sx + oy*.01, sy - ox*.01, .383], [sx + ox*.01 - oy*.03, sy + oy*.01 + ox*.03, .44], [sx - oy*.05, sy + ox*.06, .51]], .0028, false, 20, 6), 'rubber');
   },
 });
 Object.assign(BUILD, {
@@ -1029,21 +1117,23 @@ Object.assign(BUILD, {
   // alternador: carcaça com orelha de articulação (embaixo) e de ajuste (em cima), aparafusadas num suporte
   // fundido preso à frente da base de admissão direita, fora do raio da engrenagem do comando
   alternator(add) {
-    const { x, y, r } = ACC.alt, face = rayHit(['G9', 'G3'], [.33, .5, -1.2], [0, 0, 1])?.z ?? -.181, zp = face - .006, zb = zp - .006, z = zb - .05;
-    add(toZ(lathe([[0,-.05],[.045,-.05],[.053,-.045],[.057,-.035],[.057,.035],[.053,.044],[.045,.048],[0,.048]], 48)), 'cast', [x, y, z]);
-    for (let i = 0; i < 12; i++) { const a = i/12*Math.PI*2; add(box(.004, .02, .012), 'dark', [x + Math.cos(a)*.057, y + Math.sin(a)*.057, z - .02], [0, 0, a]); }
+    const { x, y, r } = ACC.alt, face = rayHit(['G9', 'G3'], [.33, .5, -1.2], [0, 0, 1])?.z ?? -.181, zp = face - .006, zb = zp - .006, z = zb - .06;
+    // carcaça de Ø ≈ 125 mm (duas metades com as janelas de ventilação) e polia de Ø ≈ 52 mm
+    add(toZ(lathe([[0,-.06],[.066,-.06],[.077,-.054],[.082,-.042],[.082,.042],[.077,.053],[.066,.058],[0,.058]], 56)), 'cast', [x, y, z]);
+    add(new THREE.TorusGeometry(.0825, .003, 6, 56), 'cast', [x, y, z]);
+    for (let i = 0; i < 16; i++) { const a = i/16*Math.PI*2; add(box(.005, .026, .016), 'dark', [x + Math.cos(a)*.081, y + Math.sin(a)*.081, z - .028], [0, 0, a]); }
     const pul = add(toZ(lathe(multiV(.006, r, .026, 6), 40)), 'steel', [x, y, ACC.z]); pul.spin = ACC.crank.r/r;
     add(cylZ(.006, ACC.z - (z - .05) > 0 ? .02 : Math.abs(ACC.z - (z - .05)) + .02, 12), 'steel', [x, y, (ACC.z + z - .05)/2]);
     // orelhas da carcaça e parafusos passantes até o suporte
-    [[.045, -.04], [-.05, -.03]].forEach(([dx, dy]) => { add(rbox(.024, .03, zb - (z - .03), .006), 'cast', [x + dx*.8, y + dy*.8, (zb + z - .03)/2]);
-      add(cylZ(.011, zb - (z - .04), 16), 'cast', [x + dx, y + dy, (zb + z - .04)/2]);
-      add(new THREE.CylinderGeometry(.007, .007, .007, 6).rotateX(Math.PI/2), 'zinc', [x + dx, y + dy, z - .045]); });
+    [[.066, -.06], [-.074, -.046]].forEach(([dx, dy]) => { add(rbox(.026, .032, zb - (z - .03), .006), 'cast', [x + dx*.85, y + dy*.85, (zb + z - .03)/2]);
+      add(cylZ(.012, zb - (z - .04), 16), 'cast', [x + dx, y + dy, (zb + z - .04)/2]);
+      add(new THREE.CylinderGeometry(.008, .008, .007, 6).rotateX(Math.PI/2), 'zinc', [x + dx, y + dy, z - .045]); });
     // suporte: placa fundida atrás do alternador, descendo até a frente do cabeçote, com dois parafusos
-    const pl = new THREE.Shape(); [[x - .075, y - .005], [x + .07, y - .01], [.37, .484], [.31, .484], [x - .06, y - .06]].forEach(([u, v], i) => i ? pl.lineTo(u, v) : pl.moveTo(u, v)); pl.closePath();
+    const pl = new THREE.Shape(); [[x - .09, y - .03], [x + .085, y - .045], [.37, .484], [.31, .484], [x - .085, y - .068]].forEach(([u, v], i) => i ? pl.lineTo(u, v) : pl.moveTo(u, v)); pl.closePath();
     add(ext(pl, .012, .002, 8), 'cast', [0, 0, zp]);
     [[.325, .496], [.352, .496]].forEach(([bx, by]) => add(new THREE.CylinderGeometry(.007, .007, .007, 6).rotateX(Math.PI/2), 'zinc', [bx, by, zp - .009]));
     // terminal B+ e conector do regulador
-    add(cylZ(.005, .02, 10), 'bronze', [x + .03, y + .035, z + .055]); add(rbox(.02, .014, .012, .003), 'plastic', [x - .025, y + .04, z + .052]);
+    add(cylZ(.006, .022, 10), 'bronze', [x + .04, y + .05, z + .066]); add(rbox(.024, .016, .014, .003), 'plastic', [x - .035, y + .055, z + .063]);
   },
   // sonda lambda traseira: depois do catalisador, mede se ele está funcionando
   rearO2(add) {
@@ -1194,6 +1284,9 @@ loadModel('modelos/ej20-montagem.json').then(gltf => {
   src.forEach(o => { if (REMOVED.has(o.name)) return; const geo = toCreasedNormals(o.geometry, Math.PI/6); o.geometry.dispose();
     const item = { name: o.name, geo }; (pieceOwner[o.name] ? mapped : loose).push(item); });
   mapped.forEach(it => { const p = pieceOwner[it.name], pc = addPiece(p, new THREE.Mesh(it.geo, partMat(p, p.mat))); pc.mesh.name = it.name; pieceByName[it.name] = pc; });
+  // as tampas do modelo de origem são placas planas: viram tampas fundidas no mesmo contorno
+  [['G6', 1], ['G5', -1]].forEach(([n, s]) => { const pc = pieceByName[n], g = castCover(pc.mesh.geometry.boundingBox, s);
+    pc.mesh.geometry.dispose(); pc.mesh.geometry = g; g.computeBoundingBox(); g.boundingBox.getCenter(pc.center); });
   // peças soltas (parafusos, porcas, arruelas, faces pequenas) ficam com a peça mapeada mais próxima
   const boxes = pieces.map(pc => ({ pc, box: pc.mesh.geometry.boundingBox }));
   loose.forEach(it => { it.geo.computeBoundingBox(); const c = it.geo.boundingBox.getCenter(new THREE.Vector3());
@@ -1228,6 +1321,32 @@ loadModel('modelos/ej20-montagem.json').then(gltf => {
   }, p));
   finishSetup();
 }).catch(err => { $('loading').textContent = 'Não foi possível carregar o modelo 3D (modelos/ej20-montagem.json).'; console.error(err); });
+
+// tampa do cabeçote fundida (EJ20 DOHC): aba de vedação, corpo abaulado, espinha central com os dois poços das velas,
+// nervuras transversais e parafusos em volta; ocupa a mesma caixa da tampa original (as bobinas se apoiam no topo dela)
+function castCover(bb, s) {
+  const xb = s > 0 ? bb.min.x : -bb.max.x, H = bb.max.y - bb.min.y, L = bb.max.z - bb.min.z, yc = (bb.min.y + bb.max.y)/2, zc = (bb.min.z + bb.max.z)/2;
+  const parts = [], put = (g, x) => { g.rotateY(-Math.PI/2).translate(s*x, 0, 0); parts.push(g); };
+  // camada no plano (z, y), espessura em x a partir da base xb
+  const layer = (shape, d, b, x0) => { const g = ext(shape, d, b, 12); put(g, x0 + d/2 + b); };
+  const ySp = .345, wells = sh => { plugZ(s).forEach(z => hole(sh, z, ySp, .021)); return sh; };
+  layer(wells(rrect(L, H, .03, zc, yc)), .006, .001, xb);
+  layer(wells(rrect(L - .04, H - .075, .035, zc, yc)), .024, .008, xb + .006);
+  const spine = wells(rrect(L - .07, .085, .03, zc, ySp));
+  // parede de cada poço, do fundo da tampa até a espinha
+  plugZ(s).forEach(z => parts.push(lathe([[.021,-.025],[.0235,-.025],[.0235,.025],[.021,.025],[.021,-.025]], 24).rotateZ(Math.PI/2).translate(s*(xb + .027), ySp, z)));
+  layer(spine, .004, .003, xb + .042);
+  // nervuras transversais no corpo, entre e fora dos poços das velas
+  const zp = plugZ(s), ribs = [bb.min.z + .05, (zp[0] + zp[1])/2, bb.max.z - .05];
+  ribs.forEach(z => [-1, 1].forEach(k => { const g = new RoundedBoxGeometry(.009, .055, .012, 2, .003);
+    g.translate(z, ySp + k*.072, 0); g.rotateY(-Math.PI/2).translate(s*(xb + .044), 0, 0); parts.push(g); }));
+  // parafusos com arruela de borracha em volta da aba
+  const bolts = []; for (let i = 0; i < 4; i++) { const z = bb.min.z + .04 + i*(L - .08)/3; bolts.push([z, bb.min.y + .013], [z, bb.max.y - .013]); }
+  bolts.forEach(([z, y]) => { const g = new THREE.CylinderGeometry(.0065, .0065, .006, 6).rotateZ(Math.PI/2).translate(s*(xb + .011), y, z); parts.push(g);
+    parts.push(new THREE.CylinderGeometry(.009, .009, .003, 20).rotateZ(Math.PI/2).translate(s*(xb + .0085), y, z)); });
+  const keep = ['position', 'normal'], merged = mergeGeometries(parts.map(g => { const n = g.index ? g.toNonIndexed() : g; Object.keys(n.attributes).forEach(k => keep.includes(k) || n.deleteAttribute(k)); return n; }));
+  return toCreasedNormals(merged, Math.PI/5);
+}
 
 // ---------- montagem final
 // fixadores que caíram numa peça giratória (volante, embreagem, virabrequim, comandos) mas ficam fora do raio dela

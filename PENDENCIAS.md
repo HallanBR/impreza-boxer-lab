@@ -26,8 +26,8 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 
 | # | Prior. | Peça | No modelo | Real (aprox.) |
 |---|---|---|---|---|
-| 2.1 | A | Alternador (diâmetro) | 87 mm | 120–130 mm |
-| 2.2 | A | Motor de arranque (diâmetro) | 52 mm | 70–80 mm |
+| 2.1 | ✅ | Alternador (diâmetro) | agora 125 mm (polia 52 mm) | 120–130 mm |
+| 2.2 | ✅ | Motor de arranque (diâmetro) | agora 73 mm, solenoide maior | 70–80 mm |
 | 2.3 | B | Compressor do A/C (diâmetro) | 88 mm | 110–125 mm |
 | 2.4 | B | Bomba da direção (corpo) | 64 mm | 80–100 mm |
 | 2.5 | B | Corpo de borboleta (furo) | 49 mm | 60–65 mm |
@@ -39,35 +39,49 @@ Ferramenta usada: `node ferramentas/gerar-auditoria.js` gera `_auditoria.html` c
 
 | # | Prior. | Peça | O que difere |
 |---|---|---|---|
-| 3.1 | A | Tampas dos cabeçotes (modelo de origem) | São placas planas com furos. As do EJ20 DOHC são fundidas, arredondadas, com nervuras e os poços das velas no centro. |
-| 3.2 | A | Bloco (modelo de origem) | Vem numa peça só. O bloco do boxer é dividido ao meio na vertical, com a linha de união e os parafusos passantes visíveis. |
-| 3.3 | A | Correia dentada | Fita lisa; a real tem dentes e a marcação de sincronismo. |
-| 3.4 | A | Tensor da correia dentada (modelo de origem) | Suporte e polia, sem o tensor hidráulico (cilindro com pistão que empurra o braço), que o EJ usa. |
-| 3.5 | B | Engrenagens dos comandos de admissão | Lisas; no EJ204 a de admissão tem o atuador do AVCS (carcaça maior, atrás da engrenagem). |
-| 3.6 | B | Capas da correia dentada | Seguem o contorno das polias; as reais têm formato próprio (central alta, janela para as marcas de ponto, encaixes entre as três peças). |
+| 3.1 | ✅ | Tampas dos cabeçotes | Refeitas como fundidas: aba de vedação com 8 parafusos, corpo abaulado, espinha central com os poços ocos das velas e nervuras. |
+| 3.2 | ✅ | Bloco | Nova peça "Junção das metades do bloco": linha de união em cima e embaixo, no plano do virabrequim, e 3 ressaltos com parafusos atravessados no alto. O sensor de detonação foi para a metade direita. |
+| 3.3 | ✅ | Correia dentada | Agora com dentes na face interna (passo de 9,5 mm), encaixando nas engrenagens; as polias lisas tocam o dorso. |
+| 3.4 | ✅ | Tensor da correia dentada | Ganhou o tensor automático hidráulico: cilindro em pé, preso por duas orelhas, com a haste apoiada na ponta do braço. |
+| 3.5 | B | Engrenagens dos comandos de admissão | São lisas. **Manual:** as de admissão têm no centro a tampa do atuador do AVCS (actuator cover), com O-ring. |
+| 3.6 | B | Capas da correia dentada | Seguem o contorno das polias. **Manual (ME-03560):** as externas são três (esquerda, direita e frontal central), como já está. Atrás das engrenagens ainda há as capas internas No. 2 esquerda e direita, que faltam no modelo. |
 | 3.7 | B | Coletor de escape | Traçado simplificado; o do GH 2.0R tem dutos de comprimentos equalizados e flanges com prisioneiros e porcas. |
 | 3.8 | B | Coletor de admissão | Plenum em caixa simples; o original é de resina com formato orgânico e os bicos encaixados no próprio coletor. |
-| 3.9 | B | Válvulas | Faltam as travas (meias-luas) e os retentores de haste. |
+| 3.9 | B | Válvulas | Faltam as travas (retainer key), os retentores de haste, as guias e os tuchos (valve lifter), todos listados no manual. |
 | 3.10 | B | Pistões (modelo de origem) | Peça única: sem anéis nem pino visíveis separadamente. |
-| 3.11 | C | Vareta de óleo | Está na traseira esquerda; no EJ fica na frente do lado esquerdo (confirmar no manual do GH). |
-| 3.12 | C | Sensor de temperatura do líquido | Está na carcaça da termostática; no EJ costuma ficar no tubo de água sob o coletor (confirmar). |
-| 3.13 | C | Tampa de abastecimento de óleo | Está na tampa do cabeçote direito; confirmar a posição no EJ204 (pode ser num bocal na frente do bloco). |
+| 3.11 | B | Vareta de óleo | Está na traseira esquerda. **Manual (ME-03561, item 23):** o guia da vareta sai do bloco esquerdo, na frente, e desce até o cárter. |
+| 3.12 | B | Sensor de temperatura do líquido | Está na carcaça da termostática. **Manual:** para tirá-lo é preciso remover o alternador, então ele fica na frente, sob o coletor, logo atrás do alternador. |
+| 3.13 | B | Tampa de abastecimento de óleo | Está na tampa do cabeçote direito. **Manual (ME-03566, itens 23–26):** é um bocal próprio (oil filler duct), com junta, O-ring e tampa, aparafusado na frente do cabeçote e separado da tampa de válvulas. |
 
 ## 4. Peças que ainda faltam
 
 | # | Prior. | Peça | Observação |
 |---|---|---|---|
-| 4.1 | A | Tubo de água entre os cabeçotes (sob o coletor) | Liga as saídas de água dos dois cabeçotes; existe no EJ. |
-| 4.2 | A | Parafusos dos cabeçotes | Não aparecem na explosão total. |
+| 4.1 | ✅ | Tubo de água (by-pass) | Tubo de aço sobre o bloco, sob o coletor, com flange na frente, presilhas e dois bicos atrás (aquecimento e borboleta), como o item 33 do manual. |
+| 4.2 | ✅ | Parafusos dos cabeçotes | 6 por lado, com arruela, dentro do cabeçote sob os comandos; aparecem na explosão. |
 | 4.3 | B | Bronzinas do virabrequim e arruelas de encosto | Só as bielas têm bronzina. |
 | 4.4 | B | Anéis e pinos dos pistões | Ligado ao item 3.10. |
-| 4.5 | B | Ganchos de içamento do motor | Dois suportes no alto do motor. |
+| 4.5 | B | Gancho de içamento | O manual lista o "engine rear hanger", no alto do bloco, na traseira. |
 | 4.6 | B | Cabo de massa (aterramento) do motor | Liga o motor à carroceria/bateria. |
 | 4.7 | B | Rolamento e garfo da embreagem / cilindro auxiliar | Fazem parte do conjunto da embreagem/câmbio. |
-| 4.8 | C | Defletor de óleo do cárter | Chapa interna que evita que o óleo balance. |
+| 4.8 | C | Defletor de óleo do cárter | Confirmado no manual (baffle plate, entre o bloco e o cárter). |
 | 4.9 | C | Suportes do escape (coxins/ganchos) | O catalisador fica preso só pelo próprio tubo. |
 | 4.10 | C | Fora do motor (opcional): radiador e ventoinha, caixa do filtro de ar, travessa dianteira, coxim do câmbio | Hoje as mangueiras, o duto de ar e os coxins terminam abertos porque essas peças são do carro. |
 
-## Itens a confirmar antes de mexer
+| 4.11 | B | Capas internas da correia (No. 2 esquerda e direita) | Ver 3.6. |
+| 4.12 | C | Guia da correia dentada (só no câmbio manual) | Peça pequena junto à engrenagem do virabrequim. |
+| 4.13 | C | Tampa do separador de óleo, tampas e bujões de serviço do bloco | Listados no manual (ME-03561). |
 
-Algumas posições dependem do manual de fábrica do Impreza GH (EJ204), que não consegui achar na internet: vareta (3.11), sensor de temperatura (3.12), tampa de óleo (3.13), formato exato dos coxins e o traçado oficial da correia dentada. Se você tiver o manual ou fotos do seu motor, dá para acertar esses pontos com precisão.
+## O que o manual de fábrica confirmou (Docs, 26/11/2026)
+
+Fonte: manual de serviço GH/GE 2008, mercado GB. Motor H4DO 2.0 (= EJ20 DOHC aspirado), seção MECHANICAL, figuras ME-03560, ME-03566, ME-03561 e ME-00413. O manual fica só no computador: a pasta Docs/ está no .gitignore.
+
+- **Coxins (ME-00413):** a borracha tem dois prisioneiros embaixo. Por cima vai um suporte de chapa estampada, aparafusado no bloco (35 N·m). Falta comparar com o desenho atual do modelo.
+- **Correia dentada:** confirmados o tensor hidráulico automático, as duas polias guia e as tampas do AVCS (itens 3.4 e 3.5).
+- **Vareta, sensor de temperatura e bocal de óleo:** posições nos itens 3.11 a 3.13.
+- **Tubo de água entre os cabeçotes (4.1):** confirmado (water by-pass pipe).
+
+Sites analisados, sem baixar nada:
+- **subaruclub.cz:** lista 27 manuais do Impreza GE/GH/GR/GV. Para o motor, o mais útil seria o FSM americano em PDF.
+- **getthemanuals.org:** tem o mesmo manual HTML 2008–2011 que já está em Docs.
+- Nenhum dos dois tem catálogo de peças (EPC) com desenhos explodidos.
