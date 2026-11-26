@@ -35,3 +35,9 @@ Projeto de estudo, **sem fins lucrativos**.
 - **Demais peças** (escape, correias, acessórios, sensores, juntas, suportes, chicote, mangueiras etc.) foram modeladas no próprio código da página.
 
 Bibliotecas: [three.js](https://threejs.org/) 0.160, carregado do jsDelivr.
+
+## Licença
+
+O código deste projeto (a página, os scripts e as ferramentas) está sob a [licença MIT](LICENSE).
+Os modelos 3D em `modelos/` vêm de trabalhos de terceiros e mantêm as licenças originais listadas acima
+(CC BY 4.0 e CC BY‑NC); a licença MIT não se aplica a eles.

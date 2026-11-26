@@ -1,0 +1,34 @@
+MIT License
+
+Copyright (c) 2026 HallanBR
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+This license covers the source code of this project (the page, its scripts and the
+tools in `ferramentas/`). The 3D model files in `modelos/` are derived from
+third-party works and keep their original licenses:
+
+- modelos/ej20-montagem.json — derived from "Subaru Engine" by shockforcegame
+  (https://sketchfab.com/3d-models/subaru-engine-5b78dd699241424c981c02cd21dad3a9),
+  licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+- modelos/ej20-detalhes.json — derived from "Subaru WRX EJ20 Boxer Engine Model" by
+  ericthepoolboy (https://www.thingiverse.com/thing:1643878), licensed CC BY-NC
+  (https://creativecommons.org/licenses/by-nc/4.0/). Non-commercial use only.
