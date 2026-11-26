@@ -40,4 +40,4 @@ Bibliotecas: [three.js](https://threejs.org/) 0.160, carregado do jsDelivr.
 
 O código deste projeto (a página, os scripts e as ferramentas) está sob a [licença MIT](LICENSE).
 Os modelos 3D em `modelos/` vêm de trabalhos de terceiros e mantêm as licenças originais listadas acima
-(CC BY 4.0 e CC BY‑NC); a licença MIT não se aplica a eles.
+(CC BY 4.0 e CC BY‑NC); a licença MIT não se aplica a eles. Detalhes em [NOTICE](NOTICE).
